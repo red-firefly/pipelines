@@ -4,4 +4,7 @@ services:
   - docker
 
 script:
-  - docker build -t api-server:0.1.30 -f backend/Dockerfile .
+  - echo "$DOCKER_HUB_ACCESS_TOKEN" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin
+  - export IMAGE_NAME=${DOCKER_HUB_USERNAME}/kubeflow-pipelines-api-server:0.1.30
+  - docker build -t $IMAGE_NAME -f backend/Dockerfile .
+  - docker push $IMAGE_NAME
