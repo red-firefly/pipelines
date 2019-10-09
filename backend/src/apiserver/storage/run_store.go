@@ -36,6 +36,11 @@ var runColumns = []string{"UUID", "DisplayName", "Name", "StorageState", "Namesp
 	"WorkflowSpecManifest", "Parameters", "pipelineRuntimeManifest", "WorkflowRuntimeManifest",
 }
 
+var listRunColumns = []string{"UUID", "DisplayName", "Name", "StorageState", "Namespace", "Description",
+	"CreatedAtInSec", "ScheduledAtInSec", "FinishedAtInSec", "Conditions", "PipelineId", "PipelineName", "PipelineSpecManifest",
+	"Parameters", "pipelineRuntimeManifest", "WorkflowRuntimeManifest",
+}
+
 type RunStoreInterface interface {
 	GetRun(runId string) (*model.RunDetail, error)
 
@@ -143,7 +148,7 @@ func (s *RunStore) ListRuns(
 
 func (s *RunStore) buildSelectRunsQuery(selectCount bool, opts *list.Options,
 	filterContext *common.FilterContext) (string, []interface{}, error) {
-	filteredSelectBuilder, err := list.FilterOnResourceReference("run_details", runColumns,
+	filteredSelectBuilder, err := list.FilterOnResourceReference("run_details", listRunColumns,
 		common.Run, selectCount, filterContext)
 	if err != nil {
 		return "", nil, util.NewInternalServerError(err, "Failed to list runs: %v", err)
