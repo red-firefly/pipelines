@@ -38,7 +38,7 @@ var runColumns = []string{"UUID", "DisplayName", "Name", "StorageState", "Namesp
 
 var listRunColumns = []string{"UUID", "DisplayName", "Name", "StorageState", "Namespace", "Description",
 	"CreatedAtInSec", "ScheduledAtInSec", "FinishedAtInSec", "Conditions", "PipelineId", "PipelineName", "PipelineSpecManifest",
-	"Parameters", "pipelineRuntimeManifest", "WorkflowRuntimeManifest",
+	"Parameters", "pipelineRuntimeManifest",
 }
 
 type RunStoreInterface interface {
@@ -107,7 +107,7 @@ func (s *RunStore) ListRuns(
 	if err != nil {
 		return errorF(err)
 	}
-	runDetails, err := s.scanRowsToRunDetails(rows)
+	runDetails, err := s.scanRowsToRunDetails(rows, true /* isListRuns */)
 	if err != nil {
 		tx.Rollback()
 		return errorF(err)
@@ -188,7 +188,7 @@ func (s *RunStore) GetRun(runId string) (*model.RunDetail, error) {
 		return nil, util.NewInternalServerError(err, "Failed to get run: %v", err.Error())
 	}
 	defer r.Close()
-	runs, err := s.scanRowsToRunDetails(r)
+	runs, err := s.scanRowsToRunDetails(r, false /* isListRuns */)
 
 	if err != nil || len(runs) > 1 {
 		return nil, util.NewInternalServerError(err, "Failed to get run: %v", err.Error())
@@ -229,34 +229,57 @@ func (s *RunStore) addMetricsAndResourceReferences(filteredSelectBuilder sq.Sele
 	return selectBuilder
 }
 
-func (s *RunStore) scanRowsToRunDetails(rows *sql.Rows) ([]*model.RunDetail, error) {
+func (s *RunStore) scanRowsToRunDetails(rows *sql.Rows, isListRuns bool) ([]*model.RunDetail, error) {
 	var runs []*model.RunDetail
 	for rows.Next() {
 		var uuid, displayName, name, storageState, namespace, description, pipelineId, pipelineName, pipelineSpecManifest,
 			workflowSpecManifest, parameters, conditions, pipelineRuntimeManifest, workflowRuntimeManifest string
 		var createdAtInSec, scheduledAtInSec, finishedAtInSec int64
 		var metricsInString, resourceReferencesInString sql.NullString
-		err := rows.Scan(
-			&uuid,
-			&displayName,
-			&name,
-			&storageState,
-			&namespace,
-			&description,
-			&createdAtInSec,
-			&scheduledAtInSec,
-			&finishedAtInSec,
-			&conditions,
-			&pipelineId,
-			&pipelineName,
-			&pipelineSpecManifest,
-			&workflowSpecManifest,
-			&parameters,
-			&pipelineRuntimeManifest,
-			&workflowRuntimeManifest,
-			&metricsInString,
-			&resourceReferencesInString,
-		)
+		var err error
+		if isListRuns {
+			err = rows.Scan(
+				&uuid,
+				&displayName,
+				&name,
+				&storageState,
+				&namespace,
+				&description,
+				&createdAtInSec,
+				&scheduledAtInSec,
+				&finishedAtInSec,
+				&conditions,
+				&pipelineId,
+				&pipelineName,
+				&pipelineSpecManifest,
+				&parameters,
+				&pipelineRuntimeManifest,
+				&metricsInString,
+				&resourceReferencesInString,
+			)
+		} else {
+			err = rows.Scan(
+				&uuid,
+				&displayName,
+				&name,
+				&storageState,
+				&namespace,
+				&description,
+				&createdAtInSec,
+				&scheduledAtInSec,
+				&finishedAtInSec,
+				&conditions,
+				&pipelineId,
+				&pipelineName,
+				&pipelineSpecManifest,
+				&workflowSpecManifest,
+				&parameters,
+				&pipelineRuntimeManifest,
+				&workflowRuntimeManifest,
+				&metricsInString,
+				&resourceReferencesInString,
+			)
+		}
 		if err != nil {
 			glog.Errorf("Failed to scan row: %v", err)
 			return runs, nil
@@ -273,30 +296,59 @@ func (s *RunStore) scanRowsToRunDetails(rows *sql.Rows) ([]*model.RunDetail, err
 			// throw internal exception if failed to parse the resource reference.
 			return nil, util.NewInternalServerError(err, "Failed to parse resource reference.")
 		}
-		runs = append(runs, &model.RunDetail{Run: model.Run{
-			UUID:               uuid,
-			DisplayName:        displayName,
-			Name:               name,
-			StorageState:       storageState,
-			Namespace:          namespace,
-			Description:        description,
-			CreatedAtInSec:     createdAtInSec,
-			ScheduledAtInSec:   scheduledAtInSec,
-			FinishedAtInSec:    finishedAtInSec,
-			Conditions:         conditions,
-			Metrics:            metrics,
-			ResourceReferences: resourceReferences,
-			PipelineSpec: model.PipelineSpec{
-				PipelineId:           pipelineId,
-				PipelineName:         pipelineName,
-				PipelineSpecManifest: pipelineRuntimeManifest,
-				WorkflowSpecManifest: workflowSpecManifest,
-				Parameters:           parameters,
-			},
-		},
-			PipelineRuntime: model.PipelineRuntime{
-				PipelineRuntimeManifest: pipelineRuntimeManifest,
-				WorkflowRuntimeManifest: workflowRuntimeManifest}})
+		if isListRuns {
+			runs = append(runs, &model.RunDetail{
+				Run: model.Run{
+					UUID:               uuid,
+					DisplayName:        displayName,
+					Name:               name,
+					StorageState:       storageState,
+					Namespace:          namespace,
+					Description:        description,
+					CreatedAtInSec:     createdAtInSec,
+					ScheduledAtInSec:   scheduledAtInSec,
+					FinishedAtInSec:    finishedAtInSec,
+					Conditions:         conditions,
+					Metrics:            metrics,
+					ResourceReferences: resourceReferences,
+					PipelineSpec: model.PipelineSpec{
+						PipelineId:           pipelineId,
+						PipelineName:         pipelineName,
+						PipelineSpecManifest: pipelineRuntimeManifest,
+						Parameters:           parameters,
+					},
+				},
+				PipelineRuntime: model.PipelineRuntime{
+					PipelineRuntimeManifest: pipelineRuntimeManifest,
+				}})
+		} else {
+			runs = append(runs, &model.RunDetail{
+				Run: model.Run{
+					UUID:               uuid,
+					DisplayName:        displayName,
+					Name:               name,
+					StorageState:       storageState,
+					Namespace:          namespace,
+					Description:        description,
+					CreatedAtInSec:     createdAtInSec,
+					ScheduledAtInSec:   scheduledAtInSec,
+					FinishedAtInSec:    finishedAtInSec,
+					Conditions:         conditions,
+					Metrics:            metrics,
+					ResourceReferences: resourceReferences,
+					PipelineSpec: model.PipelineSpec{
+						PipelineId:           pipelineId,
+						PipelineName:         pipelineName,
+						PipelineSpecManifest: pipelineRuntimeManifest,
+						WorkflowSpecManifest: workflowSpecManifest,
+						Parameters:           parameters,
+					},
+				},
+				PipelineRuntime: model.PipelineRuntime{
+					PipelineRuntimeManifest: pipelineRuntimeManifest,
+					WorkflowRuntimeManifest: workflowRuntimeManifest,
+				}})
+		}
 	}
 	return runs, nil
 }
