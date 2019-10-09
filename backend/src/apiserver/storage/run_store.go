@@ -233,7 +233,9 @@ func (s *RunStore) scanRowsToRunDetails(rows *sql.Rows, isListRuns bool) ([]*mod
 	var runs []*model.RunDetail
 	for rows.Next() {
 		var uuid, displayName, name, storageState, namespace, description, pipelineId, pipelineName, pipelineSpecManifest,
-			workflowSpecManifest, parameters, conditions, pipelineRuntimeManifest, workflowRuntimeManifest string
+			parameters, conditions, pipelineRuntimeManifest string
+		workflowSpecManifest := "{}"
+		workflowRuntimeManifest := "{}"
 		var createdAtInSec, scheduledAtInSec, finishedAtInSec int64
 		var metricsInString, resourceReferencesInString sql.NullString
 		var err error
@@ -296,59 +298,32 @@ func (s *RunStore) scanRowsToRunDetails(rows *sql.Rows, isListRuns bool) ([]*mod
 			// throw internal exception if failed to parse the resource reference.
 			return nil, util.NewInternalServerError(err, "Failed to parse resource reference.")
 		}
-		if isListRuns {
-			runs = append(runs, &model.RunDetail{
-				Run: model.Run{
-					UUID:               uuid,
-					DisplayName:        displayName,
-					Name:               name,
-					StorageState:       storageState,
-					Namespace:          namespace,
-					Description:        description,
-					CreatedAtInSec:     createdAtInSec,
-					ScheduledAtInSec:   scheduledAtInSec,
-					FinishedAtInSec:    finishedAtInSec,
-					Conditions:         conditions,
-					Metrics:            metrics,
-					ResourceReferences: resourceReferences,
-					PipelineSpec: model.PipelineSpec{
-						PipelineId:           pipelineId,
-						PipelineName:         pipelineName,
-						PipelineSpecManifest: pipelineRuntimeManifest,
-						Parameters:           parameters,
-					},
+		runs = append(runs, &model.RunDetail{
+			Run: model.Run{
+				UUID:               uuid,
+				DisplayName:        displayName,
+				Name:               name,
+				StorageState:       storageState,
+				Namespace:          namespace,
+				Description:        description,
+				CreatedAtInSec:     createdAtInSec,
+				ScheduledAtInSec:   scheduledAtInSec,
+				FinishedAtInSec:    finishedAtInSec,
+				Conditions:         conditions,
+				Metrics:            metrics,
+				ResourceReferences: resourceReferences,
+				PipelineSpec: model.PipelineSpec{
+					PipelineId:           pipelineId,
+					PipelineName:         pipelineName,
+					PipelineSpecManifest: pipelineRuntimeManifest,
+					WorkflowSpecManifest: workflowSpecManifest,
+					Parameters:           parameters,
 				},
-				PipelineRuntime: model.PipelineRuntime{
-					PipelineRuntimeManifest: pipelineRuntimeManifest,
-				}})
-		} else {
-			runs = append(runs, &model.RunDetail{
-				Run: model.Run{
-					UUID:               uuid,
-					DisplayName:        displayName,
-					Name:               name,
-					StorageState:       storageState,
-					Namespace:          namespace,
-					Description:        description,
-					CreatedAtInSec:     createdAtInSec,
-					ScheduledAtInSec:   scheduledAtInSec,
-					FinishedAtInSec:    finishedAtInSec,
-					Conditions:         conditions,
-					Metrics:            metrics,
-					ResourceReferences: resourceReferences,
-					PipelineSpec: model.PipelineSpec{
-						PipelineId:           pipelineId,
-						PipelineName:         pipelineName,
-						PipelineSpecManifest: pipelineRuntimeManifest,
-						WorkflowSpecManifest: workflowSpecManifest,
-						Parameters:           parameters,
-					},
-				},
-				PipelineRuntime: model.PipelineRuntime{
-					PipelineRuntimeManifest: pipelineRuntimeManifest,
-					WorkflowRuntimeManifest: workflowRuntimeManifest,
-				}})
-		}
+			},
+			PipelineRuntime: model.PipelineRuntime{
+				PipelineRuntimeManifest: pipelineRuntimeManifest,
+				WorkflowRuntimeManifest: workflowRuntimeManifest,
+			}})
 	}
 	return runs, nil
 }
