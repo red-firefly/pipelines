@@ -46,6 +46,8 @@ var (
 	namespace = flag.String("namespace", "kubeflow",
 		"Namespace within which CRD controller is running. Default is "+
 			"kubeflow.")
+	tensorboardImage = flag.String("tensorboard_image", "tensorflow/tensorflow:1.11.0",
+		"TensorBoard Docker image. Default is tensorflow/tensorflow:1.11.0.")
 )
 
 func main() {
@@ -62,11 +64,10 @@ func main() {
 	}
 
 	viewerV1beta1.AddToScheme(scheme.Scheme)
-	opts := &reconciler.Options{MaxNumViewers: *maxNumViewers}
+	opts := &reconciler.Options{MaxNumViewers: *maxNumViewers, TensorBoardImage: *tensorboardImage}
 	reconciler, err := reconciler.New(cli, scheme.Scheme, opts)
 	if err != nil {
 		log.Fatalf("Failed to create a Viewer Controller: %v", err)
-
 	}
 
 	// Create a controller that is in charge of Viewer types, and also responds to

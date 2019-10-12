@@ -55,6 +55,9 @@ type Options struct {
 	// When a user attempts to create one more viewer than this number, the oldest
 	// existing viewer will be deleted.
 	MaxNumViewers int
+
+	// TensorBoard Docker image
+	TensorBoardImage string
 }
 
 // New returns a new Reconciler.
@@ -97,7 +100,7 @@ func (r *Reconciler) Reconcile(req reconcile.Request) (reconcile.Result, error) 
 	}
 
 	// Set up potential deployment.
-	dpl, err := deploymentFrom(view)
+	dpl, err := deploymentFrom(view, r.opts.TensorBoardImage)
 	if err != nil {
 		utilruntime.HandleError(err)
 		// User error, don't requeue key.
@@ -158,14 +161,14 @@ func (r *Reconciler) Reconcile(req reconcile.Request) (reconcile.Result, error) 
 	return reconcile.Result{}, nil
 }
 
-func setPodSpecForTensorboard(view *viewerV1beta1.Viewer, s *corev1.PodSpec) {
+func setPodSpecForTensorboard(view *viewerV1beta1.Viewer, s *corev1.PodSpec, tensorboardImage string) {
 	if len(s.Containers) == 0 {
 		s.Containers = append(s.Containers, corev1.Container{})
 	}
 
 	c := &s.Containers[0]
 	c.Name = view.Name + "-pod"
-	c.Image = "tensorflow/tensorflow:1.11.0"
+	c.Image = tensorboardImage
 	c.Args = []string{
 		"tensorboard",
 		fmt.Sprintf("--logdir=%s", view.Spec.TensorboardSpec.LogDir),
@@ -177,7 +180,7 @@ func setPodSpecForTensorboard(view *viewerV1beta1.Viewer, s *corev1.PodSpec) {
 
 }
 
-func deploymentFrom(view *viewerV1beta1.Viewer) (*appsv1.Deployment, error) {
+func deploymentFrom(view *viewerV1beta1.Viewer, tensorboardImage string) (*appsv1.Deployment, error) {
 	name := view.Name + "-deployment"
 	dpl := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -206,7 +209,7 @@ func deploymentFrom(view *viewerV1beta1.Viewer) (*appsv1.Deployment, error) {
 
 	switch view.Spec.Type {
 	case viewerV1beta1.ViewerTypeTensorboard:
-		setPodSpecForTensorboard(view, &dpl.Spec.Template.Spec)
+		setPodSpecForTensorboard(view, &dpl.Spec.Template.Spec, tensorboardImage)
 	default:
 		return nil, fmt.Errorf("unknown viewer type: %q", view.Spec.Type)
 	}
