@@ -4,10 +4,9 @@ services:
   - docker
 
 script:
-  - echo "$DOCKER_HUB_ACCESS_TOKEN" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin
-  - export SHORT_COMMIT=$(git log -n 1 --pretty=format:'%h')
-  - export BRANCH=$(echo $TRAVIS_BRANCH | tr / - | tr _ -)
-  - export IMAGE_NAME=${DOCKER_IMAGE_ORG}/kubeflow-pipelines-api-server:${BRANCH}-${SHORT_COMMIT}
-  - echo $IMAGE_NAME
-  - docker build -t $IMAGE_NAME -f backend/Dockerfile .
-  - docker push $IMAGE_NAME
+  - env
+  - ./build_image.sh
+
+branches:
+  only:
+    - /^[a-z-]+-v\d+\.\d+\.\d+.*$/

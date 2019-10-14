@@ -21,5 +21,6 @@ RUN chmod +x /bin/controller
 
 ENV MAX_NUM_VIEWERS "50"
 ENV NAMESPACE "kubeflow"
+ENV TENSORBOARD_IMAGE "tensorflow/tensorflow:1.11.0"
 
-CMD /bin/controller -logtostderr=true -max_num_viewers=${MAX_NUM_VIEWERS} --namespace=${NAMESPACE}
+CMD /bin/controller -logtostderr=true -max_num_viewers=${MAX_NUM_VIEWERS} --namespace=${NAMESPACE} --tensorboard_image=${TENSORBOARD_IMAGE}
