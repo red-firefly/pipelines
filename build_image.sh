@@ -20,7 +20,7 @@ esac
 # BRANCH=$(git rev-parse --abbrev-ref HEAD | tr / - | tr _ -)
 # SHORT_COMMIT=$(git log -n 1 --pretty=format:'%h')
 IMAGE_TAG=$(python -c "print('v' + '${TRAVIS_TAG}'.split('-v')[1])")
-IMAGE_NAME=${DOCKER_HUB_USERNAME}/kubeflow-pipelines-${COMPONENT}:${IMAGE_TAG}
+IMAGE_NAME=${DOCKER_IMAGE_ORG}/kubeflow-pipelines-${COMPONENT}:${IMAGE_TAG}
 echo "Image name is ${IMAGE_NAME}"
 echo "$DOCKER_HUB_ACCESS_TOKEN" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin && \
   docker build -t $IMAGE_NAME -f $DOCKERFILE_PATH . && \
