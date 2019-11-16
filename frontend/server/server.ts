@@ -399,9 +399,11 @@ app.all(BASEPATH  + '/' + v1beta1Prefix + '/*', proxy({
 app.use(BASEPATH, StaticHandler(staticDir));
 app.use(StaticHandler(staticDir));
 
+app.set('view engine', 'mustache');
+
 app.get('*', (req, res) => {
   // TODO: look into caching this file to speed up multiple requests.
-  res.sendFile(path.resolve(staticDir, 'index.html'));
+  res.render(path.resolve(staticDir, 'index.html'), { trackingId: process.env.GA_TRACKING_ID });
 });
 
 app.listen(port, () => {
