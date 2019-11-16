@@ -42,6 +42,15 @@ import Toolbar, { ToolbarProps } from './Toolbar';
 import { Route, Switch, Redirect, HashRouter } from 'react-router-dom';
 import { classes, stylesheet } from 'typestyle';
 import { commonCss } from '../Css';
+import { createBrowserHistory } from 'history';
+
+const history = createBrowserHistory();
+
+history.listen(location => {
+  console.log('New history: ' + location);
+  window.ga('set', 'page', location.pathname + location.hash);
+  window.ga('send', 'pageview');
+});
 
 const css = stylesheet({
   dialog: {
@@ -154,7 +163,7 @@ class Router extends React.Component<{}, RouteComponentState> {
     ];
 
     return (
-      <HashRouter>
+      <HashRouter history={history}>
         <div className={commonCss.page}>
           <div className={commonCss.flexGrow}>
             <Route render={({ ...props }) => (<SideNav page={props.location.pathname} {...props} />)} />
