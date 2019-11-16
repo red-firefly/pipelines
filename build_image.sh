@@ -11,6 +11,10 @@ case "${COMPONENT}" in
     DOCKERFILE_PATH=backend/Dockerfile.viewercontroller
     ;;
 
+  frontend)
+    DOCKERFILE_PATH=frontend/Dockerfile
+    ;;
+
   *)
     echo "Unknown component ${COMPONENT}"
     exit 1
