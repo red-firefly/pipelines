@@ -26,6 +26,7 @@ import * as k8sHelper from './k8s-helper';
 import proxyMiddleware from './proxy-middleware';
 import { Storage } from '@google-cloud/storage';
 import {Stream} from 'stream';
+import * as mustacheExpress from 'mustache-express';
 
 import {loadJSON} from './utils';
 
@@ -89,6 +90,10 @@ const s3Client = new MinioClient({
 const podTemplateSpec = loadJSON(VIEWER_TENSORBOARD_POD_TEMPLATE_SPEC_PATH, k8sHelper.defaultPodTemplateSpec)
 
 const app = express() as Application;
+
+// Register '.html' extension with mustache-express
+app.engine('html', mustacheExpress());
+app.set('view engine', 'mustache');
 
 app.use(function (req, _, next) {
   console.info(req.method + ' ' + req.originalUrl);
@@ -398,8 +403,6 @@ app.all(BASEPATH  + '/' + v1beta1Prefix + '/*', proxy({
 
 app.use(BASEPATH, StaticHandler(staticDir));
 app.use(StaticHandler(staticDir));
-
-app.set('view engine', 'mustache');
 
 app.get('*', (req, res) => {
   // TODO: look into caching this file to speed up multiple requests.
