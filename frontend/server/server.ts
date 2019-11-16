@@ -401,7 +401,9 @@ app.all(BASEPATH  + '/' + v1beta1Prefix + '/*', proxy({
   target: apiServerAddress,
 }));
 
-app.use(BASEPATH, StaticHandler(staticDir));
+app.get(BASEPATH, (req, res) => {
+  res.render(path.resolve(staticDir, 'index.html'), { trackingId: process.env.GA_TRACKING_ID });
+});
 app.use(StaticHandler(staticDir));
 
 app.get('*', (req, res) => {
