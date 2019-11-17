@@ -54,7 +54,7 @@ history.listen(location => {
     if (gaTrackingId !== undefined && gaTrackingId !== '') {
       var currentPath = location.pathname + location.hash;
       console.log(`Send pageview of ${gaTrackingId} with path ${currentPath}`);
-      gtag('config', gaTrackingId, { 'page_path': currentPath });
+      (window as any).gtag('config', gaTrackingId, { 'page_path': currentPath });
     }
   }
 });
