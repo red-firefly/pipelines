@@ -36,9 +36,11 @@
     {{/trackingId}}
   </head>
   <body>
+    {{#trackingId}}
     <form id="hiddenData">
       <input type="hidden" name="gaTrackingId" value="{{ trackingId }}" />
     </form>
+    {{/trackingId}}
     <noscript>
       You need to enable JavaScript to run this app.
     </noscript>

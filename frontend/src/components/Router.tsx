@@ -48,10 +48,15 @@ const history = createBrowserHistory();
 
 history.listen(location => {
   console.log('New history: ' + location);
-  var gaTrackingId = document.getElementById('hiddenData').gaTrackingId.value;
-  var currentPath = location.pathname + location.hash;
-  console.log(`Send pageview of ${gaTrackingId} with path ${currentPath}`);
-  gtag('config', gaTrackingId, { 'page_path': currentPath });
+  var hiddenForm = document.getElementById('hiddenData');
+  if (hiddenForm !== undefined) {
+    var gaTrackingId = hiddenForm.gaTrackingId.value;
+    if (gaTrackingId !== undefined && gaTrackingId !== '') {
+      var currentPath = location.pathname + location.hash;
+      console.log(`Send pageview of ${gaTrackingId} with path ${currentPath}`);
+      gtag('config', gaTrackingId, { 'page_path': currentPath });
+    }
+  }
 });
 
 const css = stylesheet({
