@@ -50,7 +50,7 @@ history.listen(location => {
   console.log('New history: ' + location);
   var hiddenForm = document.getElementById('hiddenData');
   if (hiddenForm !== undefined) {
-    var gaTrackingId = hiddenForm.gaTrackingId.value;
+    var gaTrackingId = hiddenForm.gaTrackingId!.value;
     if (gaTrackingId !== undefined && gaTrackingId !== '') {
       var currentPath = location.pathname + location.hash;
       console.log(`Send pageview of ${gaTrackingId} with path ${currentPath}`);
