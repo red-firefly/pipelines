@@ -48,8 +48,10 @@ const history = createBrowserHistory();
 
 history.listen(location => {
   console.log('New history: ' + location);
-  window.ga('set', 'page', location.pathname + location.hash);
-  window.ga('send', 'pageview');
+  var gaTrackingId = document.getElementById('hiddenData').gaTrackingId.value;
+  var currentPath = location.pathname + location.hash;
+  console.log(`Send pageview of ${gaTrackingId} with path ${currentPath}`);
+  gtag('config', gaTrackingId, { 'page_path': currentPath });
 });
 
 const css = stylesheet({
