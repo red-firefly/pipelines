@@ -49,8 +49,8 @@ const history = createBrowserHistory();
 history.listen(location => {
   console.log('New history: ' + location);
   var hiddenForm = document.getElementById('hiddenData');
-  if (hiddenForm !== undefined && hiddenForm.gaTrackingId !== undefined) {
-    var gaTrackingId = hiddenForm.gaTrackingId.value;
+  if (hiddenForm !== undefined && hiddenForm!.gaTrackingId !== undefined) {
+    var gaTrackingId = hiddenForm!.gaTrackingId!.value;
     if (gaTrackingId !== undefined && gaTrackingId !== '') {
       var currentPath = location.pathname + location.hash;
       console.log(`Send pageview of ${gaTrackingId} with path ${currentPath}`);
